@@ -12,8 +12,10 @@ pandas>=2.0.0
 # File Handling
 pathlib2>=2.3.7
 
+# AI/ML Dependencies
+openai>=1.0.0
+
 # Future RAG Dependencies (commented out for now)
-# openai>=1.0.0
 # chromadb>=0.4.0
 # langchain>=0.1.0
 # sentence-transformers>=2.2.0

@@ -15,6 +15,7 @@ from utils.kb_loader import KnowledgeBaseLoader
 from utils.prompts import PromptManager
 from utils.filters import ResponseFilter
 from utils.i18n import I18nManager
+from utils.openai_service import OpenAIService
 
 # Configure Streamlit page
 st.set_page_config(
@@ -32,13 +33,14 @@ def load_managers():
     prompt_manager = PromptManager()
     response_filter = ResponseFilter()
     i18n_manager = I18nManager()
-    return kb_loader, prompt_manager, response_filter, i18n_manager
+    openai_service = OpenAIService()
+    return kb_loader, prompt_manager, response_filter, i18n_manager, openai_service
 
 def main():
     """Main application function"""
     
     # Load managers
-    kb_loader, prompt_manager, response_filter, i18n_manager = load_managers()
+    kb_loader, prompt_manager, response_filter, i18n_manager, openai_service = load_managers()
     
     # Load knowledge base
     knowledge_base = kb_loader.load_knowledge_base()
@@ -138,7 +140,7 @@ def main():
             # Generate response
             with st.chat_message("assistant"):
                 with st.spinner("Finding information for you..."):
-                    response = generate_response(prompt, knowledge_base, prompt_manager, response_filter)
+                    response = generate_response(prompt, knowledge_base, prompt_manager, response_filter, openai_service, kb_loader)
                     st.markdown(response)
             
             # Add assistant response to chat history
@@ -149,13 +151,36 @@ def main():
             st.session_state.messages = []
             st.rerun()
 
-def generate_response(query: str, knowledge_base: Dict, prompt_manager: PromptManager, response_filter: ResponseFilter) -> str:
-    """Generate a response based on the query and knowledge base"""
+def generate_response(query: str, knowledge_base: Dict, prompt_manager: PromptManager, response_filter: ResponseFilter, openai_service: OpenAIService, kb_loader: KnowledgeBaseLoader) -> str:
+    """Generate a response based on the query and knowledge base using OpenAI"""
     
     # Check if this is an emergency query
     if prompt_manager.is_emergency_query(query):
         return prompt_manager.format_emergency_response()
     
+    # Try OpenAI first if available
+    if openai_service.is_available():
+        try:
+            # Prepare context for OpenAI
+            context = {
+                'knowledge_base': knowledge_base,
+                'query_categories': prompt_manager.categorize_query(query),
+                'relevant_rights': _get_relevant_rights(query, knowledge_base, prompt_manager, kb_loader)
+            }
+            
+            # Generate response using OpenAI
+            response = openai_service.generate_response(query, context)
+            return response
+            
+        except Exception as e:
+            st.error(f"Error with OpenAI service: {e}")
+            # Fall back to original method
+    
+    # Fallback to original knowledge base method
+    return _generate_fallback_response(query, knowledge_base, prompt_manager, response_filter, kb_loader)
+
+def _get_relevant_rights(query: str, knowledge_base: Dict, prompt_manager: PromptManager, kb_loader: KnowledgeBaseLoader) -> List[Dict]:
+    """Get relevant rights for the query"""
     # Categorize the query
     categories = prompt_manager.categorize_query(query)
     
@@ -183,9 +208,12 @@ def generate_response(query: str, knowledge_base: Dict, prompt_manager: PromptMa
         all_rights = knowledge_base.get('rights', [])
         unique_rights = all_rights[:2]  # Get first 2 as general info
     
-    # Generate structured response
-    response = response_filter.format_response(query, unique_rights)
-    
+    return unique_rights
+
+def _generate_fallback_response(query: str, knowledge_base: Dict, prompt_manager: PromptManager, response_filter: ResponseFilter, kb_loader: KnowledgeBaseLoader) -> str:
+    """Generate fallback response using original method"""
+    relevant_rights = _get_relevant_rights(query, knowledge_base, prompt_manager, kb_loader)
+    response = response_filter.format_response(query, relevant_rights)
     return response
 
 if __name__ == "__main__":
