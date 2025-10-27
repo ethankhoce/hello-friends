@@ -16,6 +16,7 @@ from utils.prompts import PromptManager
 from utils.filters import ResponseFilter
 from utils.i18n import I18nManager
 from utils.openai_service import OpenAIService
+from utils.rag_service import RAGService
 
 # Configure Streamlit page
 st.set_page_config(
@@ -34,13 +35,14 @@ def load_managers():
     response_filter = ResponseFilter()
     i18n_manager = I18nManager()
     openai_service = OpenAIService()
-    return kb_loader, prompt_manager, response_filter, i18n_manager, openai_service
+    rag_service = RAGService()
+    return kb_loader, prompt_manager, response_filter, i18n_manager, openai_service, rag_service
 
 def main():
     """Main application function"""
     
     # Load managers
-    kb_loader, prompt_manager, response_filter, i18n_manager, openai_service = load_managers()
+    kb_loader, prompt_manager, response_filter, i18n_manager, openai_service, rag_service = load_managers()
     
     # Load knowledge base
     knowledge_base = kb_loader.load_knowledge_base()
@@ -92,6 +94,35 @@ def main():
         else:
             uploaded_files_list = []
         
+        # RAG Management Section
+        st.markdown("### 🤖 RAG System")
+        
+        # Process documents button
+        if st.button("🔄 Process Documents", use_container_width=True):
+            with st.spinner("Processing documents..."):
+                result = rag_service.process_uploaded_documents()
+                if result["success"]:
+                    st.success(f"✅ {result['message']}")
+                else:
+                    st.error(f"❌ {result['message']}")
+        
+        # Rebuild database button
+        if st.button("🔨 Rebuild Database", use_container_width=True):
+            with st.spinner("Rebuilding vector database..."):
+                result = rag_service.rebuild_database()
+                if result["success"]:
+                    st.success(f"✅ {result['message']}")
+                else:
+                    st.error(f"❌ {result['message']}")
+        
+        # Show RAG system info
+        rag_info = rag_service.get_database_info()
+        if rag_info:
+            st.markdown("**RAG System Status:**")
+            st.text(f"📊 Documents in DB: {rag_info['vector_db'].get('document_count', 0)}")
+            st.text(f"🔗 RAG Chain: {'✅ Active' if rag_info['rag_chain_available'] else '❌ Inactive'}")
+            st.text(f"🤖 OpenAI: {'✅ Available' if rag_info['openai_available'] else '❌ Not Available'}")
+        
         # Language selection
         st.markdown("### 🌐 Language")
         language = st.selectbox(
@@ -140,7 +171,14 @@ def main():
             # Generate response
             with st.chat_message("assistant"):
                 with st.spinner("Finding information for you..."):
-                    response = generate_response(prompt, knowledge_base, prompt_manager, response_filter, openai_service, kb_loader)
+                    response = generate_response(prompt, knowledge_base, prompt_manager, response_filter, openai_service, kb_loader, rag_service)
+                    
+                    # Check if it's a RAG response and show indicator
+                    if "🤖 **RAG Response**" in response:
+                        st.success("📚 Response generated using RAG (document-based)")
+                    elif "⚠️ **General Response**" in response:
+                        st.warning("⚠️ General response (no relevant documents)")
+                    
                     st.markdown(response)
             
             # Add assistant response to chat history
@@ -151,32 +189,38 @@ def main():
             st.session_state.messages = []
             st.rerun()
 
-def generate_response(query: str, knowledge_base: Dict, prompt_manager: PromptManager, response_filter: ResponseFilter, openai_service: OpenAIService, kb_loader: KnowledgeBaseLoader) -> str:
-    """Generate a response based on the query and knowledge base using OpenAI"""
+def generate_response(query: str, knowledge_base: Dict, prompt_manager: PromptManager, response_filter: ResponseFilter, openai_service: OpenAIService, kb_loader: KnowledgeBaseLoader, rag_service: RAGService) -> str:
+    """Generate a response based on the query using RAG and knowledge base"""
     
     # Check if this is an emergency query
     if prompt_manager.is_emergency_query(query):
         return prompt_manager.format_emergency_response()
     
-    # Try OpenAI first if available
-    if openai_service.is_available():
-        try:
-            # Prepare context for OpenAI
-            context = {
-                'knowledge_base': knowledge_base,
-                'query_categories': prompt_manager.categorize_query(query),
-                'relevant_rights': _get_relevant_rights(query, knowledge_base, prompt_manager, kb_loader)
-            }
+    # Try RAG first if available
+    try:
+        rag_result = rag_service.query_with_rag(query)
+        if rag_result["success"]:
+            response = rag_result["answer"]
+            method = rag_result.get("method", "unknown")
             
-            # Generate response using OpenAI
-            response = openai_service.generate_response(query, context)
+            # Add RAG source indicator
+            if method == "retrieval_augmented":
+                response = "🤖 **RAG Response** (Based on uploaded documents)\n\n" + response
+            
+            # Add source information if available
+            if rag_result.get("source_documents"):
+                sources = rag_result["source_documents"]
+                if sources:
+                    response += "\n\n---\n**📚 Sources:**\n"
+                    for i, source in enumerate(sources[:2], 1):  # Show max 2 sources
+                        source_name = source.get("source", "Document")
+                        response += f"{i}. 📄 {source_name}\n"
+            
             return response
-            
-        except Exception as e:
-            st.error(f"Error with OpenAI service: {e}")
-            # Fall back to original method
+    except Exception as e:
+        st.error(f"RAG query failed: {e}")
     
-    # Fallback to original knowledge base method
+    # Fallback to original method
     return _generate_fallback_response(query, knowledge_base, prompt_manager, response_filter, kb_loader)
 
 def _get_relevant_rights(query: str, knowledge_base: Dict, prompt_manager: PromptManager, kb_loader: KnowledgeBaseLoader) -> List[Dict]:

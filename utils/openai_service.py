@@ -93,10 +93,26 @@ Important contacts to mention when relevant:
 
 Remember: This is guidance only, not legal advice."""
         
+        # Add knowledge base context
         if context and context.get('knowledge_base'):
             kb_info = context['knowledge_base']
             rights_count = len(kb_info.get('rights', []))
             base_prompt += f"\n\nYou have access to a knowledge base with {rights_count} rights entries that you can reference for specific information."
+        
+        # Add RAG context if available
+        if context and context.get('retrieved_context'):
+            retrieved_text = context['retrieved_context']
+            base_prompt += f"\n\nRelevant information from uploaded documents:\n{retrieved_text}\n\nUse this information to provide accurate, specific guidance."
+        
+        # Add relevant rights context
+        if context and context.get('relevant_rights'):
+            rights = context['relevant_rights']
+            if rights:
+                base_prompt += f"\n\nRelevant rights information:\n"
+                for right in rights[:3]:  # Limit to first 3 rights
+                    title = right.get('title', 'Unknown')
+                    summary = right.get('summary', 'No summary available')
+                    base_prompt += f"- {title}: {summary}\n"
         
         return base_prompt
     
