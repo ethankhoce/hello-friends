@@ -1,0 +1,22 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#667eea" stroke="#764ba2" stroke-width="2"/>
+  
+  <!-- Main icon - hands shaking -->
+  <g transform="translate(100, 100)">
+    <!-- Left hand -->
+    <path d="M-30 -20 Q-40 -30 -30 -40 Q-20 -50 -10 -40 Q-5 -30 -15 -20 Q-25 -10 -30 -20 Z" fill="#ffffff" opacity="0.9"/>
+    
+    <!-- Right hand -->
+    <path d="M30 -20 Q40 -30 30 -40 Q20 -50 10 -40 Q5 -30 15 -20 Q25 -10 30 -20 Z" fill="#ffffff" opacity="0.9"/>
+    
+    <!-- Connection between hands -->
+    <path d="M-15 -20 Q0 -25 15 -20" stroke="#ffffff" stroke-width="3" fill="none" opacity="0.8"/>
+    
+    <!-- Heart symbol -->
+    <path d="M0 10 Q-8 2 -8 -5 Q-8 -12 0 -5 Q8 -12 8 -5 Q8 2 0 10 Z" fill="#ff6b6b" opacity="0.8"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="100" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#333333">Hello Friends</text>
+</svg>

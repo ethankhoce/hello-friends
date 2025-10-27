@@ -1,0 +1,238 @@
+# Singapore Migrant Worker Rights Knowledge Base
+# This file contains curated information about migrant worker rights in Singapore
+# Sources: Ministry of Manpower (MOM), NGOs, and legal aid organizations
+
+rights:
+  - id: "payment_rights"
+    title: "Payment and Salary Rights"
+    categories: ["payment", "salary", "wage"]
+    summary: "You have the right to receive your salary on time and in full"
+    details: |
+      As a migrant worker in Singapore, you have several important rights regarding payment:
+      
+      **Your Rights:**
+      - Receive your full salary on the agreed date (usually monthly)
+      - Get overtime pay for work beyond normal hours
+      - Receive payment for public holidays if you work
+      - Get paid annual leave as per your contract
+      
+      **What You Can Do:**
+      1. Check your payslip carefully each month
+      2. Keep records of your work hours
+      3. Report non-payment to MOM within 6 months
+      4. Contact TWC2 or HOME for assistance
+      
+      **Important:** Your employer cannot deduct money from your salary without your written consent, except for CPF contributions and income tax.
+    
+    contacts:
+      - name: "Ministry of Manpower (MOM)"
+        phone: "6438 5122"
+        website: "www.mom.gov.sg"
+        description: "Government agency for employment matters"
+      - name: "Transient Workers Count Too (TWC2)"
+        phone: "6297 7561"
+        website: "www.twc2.org.sg"
+        description: "NGO helping migrant workers"
+      - name: "Humanitarian Organisation for Migration Economics (HOME)"
+        phone: "6341 5535"
+        website: "www.home.org.sg"
+        description: "Support for migrant workers"
+
+  - id: "passport_rights"
+    title: "Passport and Document Rights"
+    categories: ["passport", "document", "identity"]
+    summary: "Your employer cannot keep your passport without your consent"
+    details: |
+      Your passport and other personal documents belong to you, not your employer.
+      
+      **Your Rights:**
+      - Keep your passport and personal documents
+      - Access your passport when needed (for banking, medical, etc.)
+      - Request your passport back at any time
+      - Report if your passport is withheld
+      
+      **What You Can Do:**
+      1. Ask your employer to return your passport
+      2. If refused, report to MOM immediately
+      3. Contact police if passport is withheld illegally
+      4. Seek help from NGOs like HOME or TWC2
+      
+      **Important:** Keeping someone's passport without permission is illegal in Singapore and can result in fines or jail time for the employer.
+    
+    contacts:
+      - name: "Ministry of Manpower (MOM)"
+        phone: "6438 5122"
+        description: "Report passport withholding"
+      - name: "Singapore Police Force"
+        phone: "999"
+        description: "Emergency for illegal passport retention"
+      - name: "HOME"
+        phone: "6341 5535"
+        description: "Legal assistance for migrant workers"
+
+  - id: "medical_rights"
+    title: "Medical and Healthcare Rights"
+    categories: ["medical", "health", "doctor", "sick"]
+    summary: "You have the right to medical care when you are sick or injured"
+    details: |
+      Your health and safety are protected under Singapore law.
+      
+      **Your Rights:**
+      - See a doctor when you are sick or injured
+      - Get medical treatment for work-related injuries
+      - Take sick leave as per your contract
+      - Access emergency medical care
+      - Receive proper medical insurance coverage
+      
+      **What You Can Do:**
+      1. Inform your employer immediately if you are sick
+      2. Go to a doctor or hospital if needed
+      3. Keep medical certificates and receipts
+      4. Report work-related injuries to MOM
+      5. Contact NGOs for medical assistance if needed
+      
+      **Important:** Your employer cannot force you to work when you are seriously ill. Work-related injuries must be reported to MOM within 10 days.
+    
+    contacts:
+      - name: "Ministry of Manpower (MOM)"
+        phone: "6438 5122"
+        description: "Report work-related injuries"
+      - name: "Singapore General Hospital"
+        phone: "6222 3322"
+        description: "Public hospital emergency"
+      - name: "HOME Medical Clinic"
+        phone: "6341 5535"
+        description: "Free medical care for migrant workers"
+
+  - id: "rest_rights"
+    title: "Rest Days and Working Hours"
+    categories: ["rest", "holiday", "working_hours"]
+    summary: "You are entitled to rest days and reasonable working hours"
+    details: |
+      Singapore law protects your right to rest and limits excessive working hours.
+      
+      **Your Rights:**
+      - At least one rest day per week (usually Sunday)
+      - Maximum 44 hours of work per week
+      - Overtime pay for work beyond normal hours
+      - Public holidays off (or extra pay if you work)
+      - Annual leave as per your contract
+      
+      **What You Can Do:**
+      1. Keep track of your working hours
+      2. Insist on your weekly rest day
+      3. Report excessive overtime to MOM
+      4. Contact NGOs if you are denied rest days
+      5. Document any violations with photos/records
+      
+      **Important:** Working more than 12 hours per day or 72 hours per week is illegal without special permission from MOM.
+    
+    contacts:
+      - name: "Ministry of Manpower (MOM)"
+        phone: "6438 5122"
+        description: "Report working hour violations"
+      - name: "TWC2"
+        phone: "6297 7561"
+        description: "Support for work-related issues"
+      - name: "HOME"
+        phone: "6341 5535"
+        description: "Legal assistance for workers"
+
+  - id: "accommodation_rights"
+    title: "Accommodation Standards"
+    categories: ["accommodation", "housing", "living_conditions"]
+    summary: "You have the right to safe and adequate accommodation"
+    details: |
+      Your living conditions are regulated by Singapore law to ensure your safety and wellbeing.
+      
+      **Your Rights:**
+      - Safe and clean accommodation
+      - Adequate space (minimum 4.5 square meters per person)
+      - Proper ventilation and lighting
+      - Access to clean water and toilets
+      - Fire safety measures
+      - Privacy and security
+      
+      **What You Can Do:**
+      1. Document poor living conditions with photos
+      2. Report overcrowded or unsafe accommodation to MOM
+      3. Contact NGOs for assistance
+      4. Request accommodation inspection
+      5. Keep records of complaints made
+      
+      **Important:** Your employer is responsible for providing safe accommodation. Unsafe conditions can be reported to MOM for investigation.
+    
+    contacts:
+      - name: "Ministry of Manpower (MOM)"
+        phone: "6438 5122"
+        description: "Report accommodation violations"
+      - name: "Singapore Civil Defence Force"
+        phone: "995"
+        description: "Fire safety emergencies"
+      - name: "HOME"
+        phone: "6341 5535"
+        description: "Support for accommodation issues"
+
+  - id: "employment_change"
+    title: "Changing Employers"
+    categories: ["employer", "job_change", "transfer"]
+    summary: "You have options if you want to change employers"
+    details: |
+      While changing employers can be complex, you have certain rights and options.
+      
+      **Your Rights:**
+      - Complete your contract period
+      - Request transfer to another employer
+      - Apply for new work permit (with restrictions)
+      - Return home if contract is completed
+      - Seek help from MOM for employment issues
+      
+      **What You Can Do:**
+      1. Complete your current contract properly
+      2. Apply for new work permit through MOM
+      3. Seek assistance from employment agencies
+      4. Contact NGOs for guidance
+      5. Consider returning home and applying fresh
+      
+      **Important:** Changing employers requires MOM approval and may involve fees. It's easier to change employers within the same sector.
+    
+    contacts:
+      - name: "Ministry of Manpower (MOM)"
+        phone: "6438 5122"
+        description: "Work permit and employment matters"
+      - name: "Employment Agencies"
+        phone: "Various"
+        description: "Help with job placement"
+      - name: "TWC2"
+        phone: "6297 7561"
+        description: "Guidance on employment changes"
+
+# General information and disclaimers
+disclaimers:
+  - text: "This information is for general guidance only and does not constitute legal advice."
+  - text: "For specific legal matters, please consult a qualified lawyer or contact MOM directly."
+  - text: "In case of emergency, call 999 for police or 995 for fire/medical emergencies."
+
+# Emergency contacts
+emergency_contacts:
+  - name: "Police Emergency"
+    phone: "999"
+    description: "For crimes, accidents, or immediate danger"
+  - name: "Fire/Medical Emergency"
+    phone: "995"
+    description: "For fires, medical emergencies, or rescue"
+  - name: "MOM Hotline"
+    phone: "6438 5122"
+    description: "Employment and work permit issues"
+
+# Additional resources
+resources:
+  - name: "MOM Website"
+    url: "www.mom.gov.sg"
+    description: "Official government information"
+  - name: "TWC2 Website"
+    url: "www.twc2.org.sg"
+    description: "Migrant worker support organization"
+  - name: "HOME Website"
+    url: "www.home.org.sg"
+    description: "Humanitarian organization for migrant workers"
