@@ -59,84 +59,91 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
-    # Create two columns
-    col1, col2 = st.columns([1, 2])
+    # Only show chat to end-users; admin panel gated by env var
+    show_admin = os.getenv("ADMIN_MODE", "0") == "1"
     
-    with col1:
-        st.markdown("### 📁 Admin Panel")
-        
-        # File upload section
-        uploaded_files = st.file_uploader(
-            "Upload PDF files for knowledge base",
-            type=['pdf'],
-            accept_multiple_files=True,
-            help="Upload PDF documents that will be used to enhance the knowledge base"
-        )
-        
-        if uploaded_files:
-            upload_dir = Path("rag/uploads")
-            upload_dir.mkdir(parents=True, exist_ok=True)
+    if show_admin:
+        col1, col2 = st.columns([1, 2])
+    else:
+        # When not in admin mode, use full width for chat
+        col2 = st.container()
+    
+    if show_admin:
+        with col1:
+            st.markdown("### 📁 Admin Panel")
             
-            for uploaded_file in uploaded_files:
-                file_path = upload_dir / uploaded_file.name
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                st.success(f"✅ Uploaded: {uploaded_file.name}")
-        
-        # Show uploaded files
-        upload_dir = Path("rag/uploads")
-        if upload_dir.exists():
-            uploaded_files_list = list(upload_dir.glob("*.pdf"))
-            if uploaded_files_list:
-                st.markdown("**Uploaded Files:**")
-                for file in uploaded_files_list:
-                    st.text(f"📄 {file.name}")
+            # File upload section
+            uploaded_files = st.file_uploader(
+                "Upload PDF files for knowledge base",
+                type=['pdf'],
+                accept_multiple_files=True,
+                help="Upload PDF documents that will be used to enhance the knowledge base"
+            )
+            
+            if uploaded_files:
+                upload_dir = Path("rag/uploads")
+                upload_dir.mkdir(parents=True, exist_ok=True)
+                
+                for uploaded_file in uploaded_files:
+                    file_path = upload_dir / uploaded_file.name
+                    with open(file_path, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    st.success(f"✅ Uploaded: {uploaded_file.name}")
+            
+            # Show uploaded files
+            upload_dir = Path("rag/uploads")
+            if upload_dir.exists():
+                uploaded_files_list = list(upload_dir.glob("*.pdf"))
+                if uploaded_files_list:
+                    st.markdown("**Uploaded Files:**")
+                    for file in uploaded_files_list:
+                        st.text(f"📄 {file.name}")
+                else:
+                    uploaded_files_list = []
             else:
                 uploaded_files_list = []
-        else:
-            uploaded_files_list = []
-        
-        # RAG Management Section
-        st.markdown("### 🤖 RAG System")
-        
-        # Process documents button
-        if st.button("🔄 Process Documents", use_container_width=True):
-            with st.spinner("Processing documents..."):
-                result = rag_service.process_uploaded_documents()
-                if result["success"]:
-                    st.success(f"✅ {result['message']}")
-                else:
-                    st.error(f"❌ {result['message']}")
-        
-        # Rebuild database button
-        if st.button("🔨 Rebuild Database", use_container_width=True):
-            with st.spinner("Rebuilding vector database..."):
-                result = rag_service.rebuild_database()
-                if result["success"]:
-                    st.success(f"✅ {result['message']}")
-                else:
-                    st.error(f"❌ {result['message']}")
-        
-        # Show RAG system info
-        rag_info = rag_service.get_database_info()
-        if rag_info:
-            st.markdown("**RAG System Status:**")
-            st.text(f"📊 Documents in DB: {rag_info['vector_db'].get('document_count', 0)}")
-            st.text(f"🔗 RAG Chain: {'✅ Active' if rag_info['rag_chain_available'] else '❌ Inactive'}")
-            st.text(f"🤖 OpenAI: {'✅ Available' if rag_info['openai_available'] else '❌ Not Available'}")
-        
-        # Language selection
-        st.markdown("### 🌐 Language")
-        language = st.selectbox(
-            "Select language",
-            ["English", "Tamil", "Bengali", "Tagalog", "Bahasa Indonesia"],
-            index=0
-        )
-        
-        # Statistics
-        st.markdown("### 📊 Statistics")
-        st.metric("Knowledge Base Entries", len(knowledge_base.get('rights', [])))
-        st.metric("Uploaded Documents", len(uploaded_files_list))
+            
+            # RAG Management Section
+            st.markdown("### 🤖 RAG System")
+            
+            # Process documents button
+            if st.button("🔄 Process Documents", use_container_width=True):
+                with st.spinner("Processing documents..."):
+                    result = rag_service.process_uploaded_documents()
+                    if result["success"]:
+                        st.success(f"✅ {result['message']}")
+                    else:
+                        st.error(f"❌ {result['message']}")
+            
+            # Rebuild database button
+            if st.button("🔨 Rebuild Database", use_container_width=True):
+                with st.spinner("Rebuilding vector database..."):
+                    result = rag_service.rebuild_database()
+                    if result["success"]:
+                        st.success(f"✅ {result['message']}")
+                    else:
+                        st.error(f"❌ {result['message']}")
+            
+            # Show RAG system info
+            rag_info = rag_service.get_database_info()
+            if rag_info:
+                st.markdown("**RAG System Status:**")
+                st.text(f"📊 Documents in DB: {rag_info['vector_db'].get('document_count', 0)}")
+                st.text(f"🔗 RAG Chain: {'✅ Active' if rag_info['rag_chain_available'] else '❌ Inactive'}")
+                st.text(f"🤖 OpenAI: {'✅ Available' if rag_info['openai_available'] else '❌ Not Available'}")
+            
+            # Language selection
+            st.markdown("### 🌐 Language")
+            language = st.selectbox(
+                "Select language",
+                ["English", "Tamil", "Bengali", "Tagalog", "Bahasa Indonesia"],
+                index=0
+            )
+            
+            # Statistics
+            st.markdown("### 📊 Statistics")
+            st.metric("Knowledge Base Entries", len(knowledge_base.get('rights', [])))
+            st.metric("Uploaded Documents", len(uploaded_files_list))
     
     with col2:
         st.markdown("### 💬 Chat Assistant")
