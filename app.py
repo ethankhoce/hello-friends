@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Dict, List, Optional
 import yaml
 from datetime import datetime
+import html
+import re
 
 # Import our utility modules
 from utils.kb_loader import KnowledgeBaseLoader
@@ -143,11 +145,6 @@ def main():
         if "messages" not in st.session_state:
             st.session_state.messages = []
         
-        # Display chat history
-        for message in st.session_state.messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-        
         # Example prompts
         st.markdown("**Quick questions you can ask:**")
         example_prompts = prompt_manager.get_example_prompts()
@@ -159,30 +156,71 @@ def main():
                 if st.button(prompt, key=f"example_{i}", use_container_width=True):
                     st.session_state.user_input = prompt
         
-        # Chat input
+        # Create a container for chat messages with fixed height and scroll
+        chat_container = st.container()
+        
+        with chat_container:
+            # Display chat history in a scrollable area
+            if st.session_state.messages:
+                # Create a custom scrollable container
+                st.markdown("""
+                <div style="height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem; margin: 1rem 0; background-color: #fafafa;">
+                """, unsafe_allow_html=True)
+                
+                for message in st.session_state.messages:
+                    if message["role"] == "user":
+                        # Clean the content to remove any stray HTML tags
+                        clean_content = re.sub(r'</?div[^>]*>', '', message["content"]).strip()
+                        clean_content = html.escape(clean_content)
+                        st.markdown(f"""
+                        <div style="margin-bottom: 1rem; text-align: right;">
+                            <div style="display: inline-block; background-color: #007bff; color: white; padding: 0.5rem 1rem; border-radius: 18px; max-width: 70%; word-wrap: break-word;">
+                                {clean_content}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    else:
+                        # Clean the content to remove any stray HTML tags
+                        clean_content = re.sub(r'</?div[^>]*>', '', message["content"]).strip()
+                        clean_content = html.escape(clean_content)
+                        st.markdown(f"""
+                        <div style="margin-bottom: 1rem; text-align: left;">
+                            <div style="display: inline-block; background-color: #f1f3f4; color: #333; padding: 0.5rem 1rem; border-radius: 18px; max-width: 70%; word-wrap: break-word;">
+                                {clean_content}
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                st.markdown("</div>", unsafe_allow_html=True)
+            else:
+                # Show empty state
+                st.markdown("""
+                <div style="height: 400px; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem; margin: 1rem 0; background-color: #fafafa; display: flex; align-items: center; justify-content: center;">
+                    <p style="color: #666; text-align: center;">Start a conversation by asking about your rights...</p>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        # Bottom section with input and controls
+        st.markdown("---")
+        
+        # Chat input at the bottom
         if prompt := st.chat_input("Ask about your rights..."):
             # Add user message to chat history
             st.session_state.messages.append({"role": "user", "content": prompt})
             
-            # Display user message
-            with st.chat_message("user"):
-                st.markdown(prompt)
-            
             # Generate response
-            with st.chat_message("assistant"):
-                with st.spinner("Finding information for you..."):
-                    response = generate_response(prompt, knowledge_base, prompt_manager, response_filter, openai_service, kb_loader, rag_service)
-                    
-                    # Check if it's a RAG response and show indicator
-                    if "🤖 **RAG Response**" in response:
-                        st.success("📚 Response generated using RAG (document-based)")
-                    elif "⚠️ **General Response**" in response:
-                        st.warning("⚠️ General response (no relevant documents)")
-                    
-                    st.markdown(response)
+            with st.spinner("Finding information for you..."):
+                response = generate_response(prompt, knowledge_base, prompt_manager, response_filter, openai_service, kb_loader, rag_service)
+                
+                # Check if it's a RAG response and show indicator
+                if "🤖 **RAG Response**" in response:
+                    response = "📚 Response generated using RAG (document-based)\n\n" + response
+                elif "⚠️ **General Response**" in response:
+                    response = "⚠️ General response (no relevant documents)\n\n" + response
             
             # Add assistant response to chat history
             st.session_state.messages.append({"role": "assistant", "content": response})
+            st.rerun()
         
         # Clear chat button
         if st.button("🗑️ Clear Chat", use_container_width=True):
