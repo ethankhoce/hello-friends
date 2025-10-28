@@ -108,6 +108,71 @@ def main() -> None:
         },
     ]
 
+    # Search bar
+    query = st.text_input(
+        "Search by name, address, or postal code",
+        value="",
+        placeholder="e.g. Kranji, Canberra, 415814",
+    ).strip()
+
+    def _matches_query(centre: dict, q: str) -> bool:
+        if not q:
+            return True
+        q_lower = q.lower()
+        name_lower = (centre["name"] or "").lower()
+        addr_lower = (centre["address"] or "").lower()
+
+        # Exact substring
+        if q_lower in name_lower or q_lower in addr_lower:
+            return True
+
+        # Postal code: keep digits only and look for the digits of q
+        import re
+        from difflib import SequenceMatcher
+
+        q_digits = re.sub(r"\D", "", q)
+        if q_digits:
+            addr_digits = re.sub(r"\D", "", centre["address"]) if centre["address"] else ""
+            if q_digits and q_digits in addr_digits:
+                return True
+
+        # Fuzzy matching: compare against name and address words and whole strings
+        def _ratio(a: str, b: str) -> float:
+            return SequenceMatcher(None, a, b).ratio()
+
+        # Whole string similarity threshold
+        if _ratio(q_lower, name_lower) >= 0.78 or _ratio(q_lower, addr_lower) >= 0.78:
+            return True
+
+        # Token-level similarity: match any token closely
+        tokens = re.findall(r"[a-z0-9]+", name_lower + " " + addr_lower)
+        for tok in tokens:
+            if _ratio(q_lower, tok) >= 0.82:
+                return True
+
+        return False
+
+    # Facilities filter chips (multiselect)
+    def _facility_list(centre: dict) -> list[str]:
+        return [s.strip() for s in (centre.get("facilities") or "").split(",") if s.strip()]
+
+    all_facilities = sorted({f for c in centres for f in _facility_list(c)})
+    selected_facilities = st.multiselect(
+        "Filter by facilities",
+        options=all_facilities,
+        default=[],
+        placeholder="Select facilities...",
+    )
+
+    def _matches_facilities(centre: dict) -> bool:
+        if not selected_facilities:
+            return True
+        centre_fac = set(_facility_list(centre))
+        # Match any selected facility
+        return any(f in centre_fac for f in selected_facilities)
+
+    filtered = [c for c in centres if _matches_query(c, query) and _matches_facilities(c)]
+
     # Present as a styled list (cards)
     st.markdown(
         """
@@ -128,7 +193,9 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    for c in centres:
+    st.caption(f"Showing {len(filtered)} of {len(centres)} centres")
+
+    for c in filtered:
         name_link = c["map"] and f"<a class='rc-link' href='{c['map']}' target='_blank' rel='noopener'>{c['name']}</a>" or c["name"]
         booking_html = (
             f"<a class='rc-btn' href='{c['booking_url']}' target='_blank' rel='noopener'>{c['booking']}</a>"
