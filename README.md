@@ -1,6 +1,6 @@
 # how to run
 source venv/bin/activate
-streamlit run app.py
+streamlit run Home.py
 
 # Hello Friends - Migrant Worker Rights Assistant
 
@@ -15,6 +15,13 @@ A production-ready Streamlit application providing guidance and support for migr
 - 🔗 **Resource Links**: Direct access to MOM, NGOs, and emergency contacts
 - 🎨 **Accessible UI**: Large buttons, clear copy, and friendly tone
 
+## Login Credentials
+
+**Username:** `admin`  
+**Password:** `HelloFriends2024!`
+
+> **Note:** The application requires login authentication. Use the credentials above to access all features.
+
 ## Quick Start
 
 1. **Install Dependencies**
@@ -24,17 +31,17 @@ A production-ready Streamlit application providing guidance and support for migr
 
 2. **Run the Application**
    ```bash
-   streamlit run app.py
+   streamlit run Home.py
    ```
 
 3. **Access the App**
-   Open your browser to `http://localhost:8501`
+   Open your browser to `http://localhost:8501` and log in with the credentials above.
 
 ## Project Structure
 
 ```
 hellofriends/
-├── app.py                 # Main Streamlit application
+├── Home.py                # Main Streamlit application
 ├── kb/
 │   └── rights_sg.yaml    # Singapore migrant worker rights knowledge base
 ├── rag/

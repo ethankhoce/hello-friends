@@ -28,6 +28,43 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Hardcoded login credentials
+VALID_USERNAME = "admin"
+VALID_PASSWORD = "HelloFriends2024!"
+
+def check_authentication():
+    """Check if user is authenticated"""
+    return st.session_state.get("authenticated", False)
+
+def show_login_page():
+    """Display login page"""
+    st.markdown("""
+    <div style="text-align: center; padding: 3rem 0;">
+        <h1 style="font-size: 3rem; margin-bottom: 1rem;">🤝 Hello Friends</h1>
+        <p style="font-size: 1.2rem; color: #666; margin-bottom: 2rem;">
+            Migrant Worker Rights Assistant
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Login form
+    with st.form("login_form"):
+        st.markdown("### Login")
+        username = st.text_input("Username", placeholder="Enter your username")
+        password = st.text_input("Password", type="password", placeholder="Enter your password")
+        submit_button = st.form_submit_button("Login", use_container_width=True)
+        
+        if submit_button:
+            if username == VALID_USERNAME and password == VALID_PASSWORD:
+                st.session_state.authenticated = True
+                st.rerun()
+            else:
+                st.error("❌ Invalid username or password. Please try again.")
+    
+    # Show credentials info (for reference)
+    with st.expander("ℹ️ Login Information"):
+        st.info(f"Username: `{VALID_USERNAME}`\n\nPassword: `{VALID_PASSWORD}`")
+
 # Initialize managers
 @st.cache_resource
 def load_managers():
@@ -43,21 +80,44 @@ def load_managers():
 def main():
     """Main application function"""
     
+    # Display disclaimer
+    st.markdown("""
+        <div style="background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 1rem; margin-bottom: 1.5rem; border-radius: 5px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ IMPORTANT NOTICE</h4>
+            <p style="margin: 0; color: #856404;">
+                <strong>This web application is a prototype developed for educational purposes only.</strong> The information provided here is NOT intended for real-world usage and should not be relied upon for making any decisions, especially those related to financial, legal, or healthcare matters.
+            </p>
+            <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                Furthermore, please be aware that the LLM may generate inaccurate or incorrect information. You assume full responsibility for how you use any generated output.
+            </p>
+            <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                Always consult with qualified professionals for accurate and personalized advice.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
     # Load managers
     kb_loader, prompt_manager, response_filter, i18n_manager, openai_service, rag_service = load_managers()
     
     # Load knowledge base
     knowledge_base = kb_loader.load_knowledge_base()
     
-    # Header
-    st.markdown("""
-    <div style="text-align: center; padding: 2rem 0; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin-bottom: 2rem;">
-        <h1 style="margin: 0; font-size: 3rem;">🤝 Hello Friends</h1>
-        <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; opacity: 0.9;">
-            Trusted guidance for migrant-worker rights in Singapore. Not legal advice.
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    # Header with logout button
+    col_header, col_logout = st.columns([4, 1])
+    with col_header:
+        st.markdown("""
+        <div style="text-align: center; padding: 2rem 0; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px; margin-bottom: 2rem;">
+            <h1 style="margin: 0; font-size: 3rem;">🤝 Hello Friends</h1>
+            <p style="margin: 0.5rem 0 0 0; font-size: 1.2rem; opacity: 0.9;">
+                Trusted guidance for migrant-worker rights in Singapore. Not legal advice.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_logout:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🚪 Logout", use_container_width=True):
+            st.session_state.authenticated = False
+            st.rerun()
     
     # Only show chat to end-users; admin panel gated by env var
     show_admin = os.getenv("ADMIN_MODE", "0") == "1"
@@ -332,4 +392,8 @@ def _generate_fallback_response(query: str, knowledge_base: Dict, prompt_manager
     return response
 
 if __name__ == "__main__":
-    main()
+    # Check authentication before showing main app
+    if not check_authentication():
+        show_login_page()
+    else:
+        main()

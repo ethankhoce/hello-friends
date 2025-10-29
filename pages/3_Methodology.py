@@ -1,6 +1,29 @@
 import streamlit as st
 
 
+def check_authentication():
+    """Check if user is authenticated"""
+    return st.session_state.get("authenticated", False)
+
+
+def _display_disclaimer() -> None:
+    """Display the disclaimer notice at the top of the page"""
+    st.markdown("""
+        <div style="background-color: #fff3cd; border-left: 5px solid #ffc107; padding: 1rem; margin-bottom: 1.5rem; border-radius: 5px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ IMPORTANT NOTICE</h4>
+            <p style="margin: 0; color: #856404;">
+                <strong>This web application is a prototype developed for educational purposes only.</strong> The information provided here is NOT intended for real-world usage and should not be relied upon for making any decisions, especially those related to financial, legal, or healthcare matters.
+            </p>
+            <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                Furthermore, please be aware that the LLM may generate inaccurate or incorrect information. You assume full responsibility for how you use any generated output.
+            </p>
+            <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                Always consult with qualified professionals for accurate and personalized advice.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+
 def _header() -> None:
     st.markdown(
         """
@@ -114,6 +137,12 @@ def _tips() -> None:
 
 
 def main() -> None:
+    if not check_authentication():
+        st.error("🔒 Please log in to access this page.")
+        st.info("Go to the main page to log in.")
+        st.stop()
+    
+    _display_disclaimer()
     _header()
     _intro()
     _chat_flow()
@@ -123,5 +152,9 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+# For Streamlit pages, execute main() when module is loaded
+main()
 
 
