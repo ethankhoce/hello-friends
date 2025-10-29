@@ -262,7 +262,3 @@ if __name__ == "__main__":
     main()
 
 
-# For Streamlit pages, execute main() when module is loaded
-main()
-
-

@@ -1,3 +1,8 @@
+# Login
+username: admin
+password: password
+
+
 # RAG (Retrieval-Augmented Generation) Directory
 
 This directory contains files and utilities for the RAG functionality of the Hello Friends app.

@@ -18,7 +18,7 @@ A production-ready Streamlit application providing guidance and support for migr
 ## Login Credentials
 
 **Username:** `admin`  
-**Password:** `HelloFriends2024!`
+**Password:** `password`
 
 > **Note:** The application requires login authentication. Use the credentials above to access all features.
 

@@ -30,7 +30,7 @@ st.set_page_config(
 
 # Hardcoded login credentials
 VALID_USERNAME = "admin"
-VALID_PASSWORD = "HelloFriends2024!"
+VALID_PASSWORD = "password"
 
 def check_authentication():
     """Check if user is authenticated"""
