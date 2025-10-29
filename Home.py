@@ -163,16 +163,43 @@ def main():
                 if st.button(prompt, key=f"example_{i}", use_container_width=True):
                     st.session_state.user_input = prompt
         
+        # If a quick question was clicked, process it like a chat submission
+        if st.session_state.get("user_input"):
+            queued_prompt = st.session_state.user_input
+            # Clear immediately to avoid duplicate submissions on rerun
+            st.session_state.user_input = ""
+            
+            # Ensure messages list exists
+            if "messages" not in st.session_state:
+                st.session_state.messages = []
+            
+            # Add user message and generate response
+            st.session_state.messages.append({"role": "user", "content": queued_prompt})
+            with st.spinner("Finding information for you..."):
+                response = generate_response(
+                    queued_prompt,
+                    knowledge_base,
+                    prompt_manager,
+                    response_filter,
+                    openai_service,
+                    kb_loader,
+                    rag_service,
+                )
+                if "🤖 **RAG Response**" in response:
+                    response = "📚 Response generated using RAG (document-based)\n\n" + response
+                elif "⚠️ **General Response**" in response:
+                    response = "⚠️ General response (no relevant documents)\n\n" + response
+            st.session_state.messages.append({"role": "assistant", "content": response})
+            st.rerun()
+        
         # Create a container for chat messages with fixed height and scroll
         chat_container = st.container()
         
         with chat_container:
             # Display chat history in a scrollable area
             if st.session_state.messages:
-                # Create a custom scrollable container
-                st.markdown("""
-                <div style="height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem; margin: 1rem 0; background-color: #fafafa;">
-                """, unsafe_allow_html=True)
+                # Render messages inline without grey framed container
+                st.markdown("", unsafe_allow_html=True)
                 
                 for message in st.session_state.messages:
                     if message["role"] == "user":
@@ -198,14 +225,13 @@ def main():
                         </div>
                         """, unsafe_allow_html=True)
                 
-                st.markdown("</div>", unsafe_allow_html=True)
+                st.markdown("", unsafe_allow_html=True)
             else:
                 # Show empty state
-                st.markdown("""
-                <div style="height: 400px; border: 1px solid #e0e0e0; border-radius: 10px; padding: 1rem; margin: 1rem 0; background-color: #fafafa; display: flex; align-items: center; justify-content: center;">
-                    <p style="color: #666; text-align: center;">Start a conversation by asking about your rights...</p>
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(
+                    "<p style=\"color: #666; text-align: center; margin: 1.5rem 0;\">Start a conversation by asking about your rights...</p>",
+                    unsafe_allow_html=True,
+                )
         
         # Bottom section with input and controls
         st.markdown("---")
