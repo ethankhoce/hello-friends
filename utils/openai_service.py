@@ -11,8 +11,13 @@ from dotenv import load_dotenv
 
 try:
     import streamlit as st  # type: ignore
+    try:
+        from streamlit.errors import StreamlitSecretNotFoundError  # type: ignore
+    except ModuleNotFoundError:
+        StreamlitSecretNotFoundError = Exception  # type: ignore[assignment]
 except ModuleNotFoundError:  # Streamlit not installed (e.g., during local tests)
     st = None  # type: ignore
+    StreamlitSecretNotFoundError = Exception  # type: ignore[assignment]
 
 
 # Load environment variables
@@ -46,7 +51,7 @@ class OpenAIService:
 
         try:
             return {key: value for key, value in st.secrets.items()}  # type: ignore[attr-defined]
-        except (AttributeError, RuntimeError):
+        except (AttributeError, RuntimeError, StreamlitSecretNotFoundError):
             # Streamlit secrets unavailable outside Streamlit runtime
             return {}
     
@@ -66,6 +71,7 @@ class OpenAIService:
             Generated response from OpenAI
         """
         if not self.is_available():
+            logger.info("OpenAI service unavailable, using fallback for message: %s", user_message)
             return self._get_fallback_response(user_message)
         
         try:
@@ -78,6 +84,15 @@ class OpenAIService:
                 {"role": "user", "content": user_message}
             ]
             
+            logger.info(
+                "Calling OpenAI ChatCompletion model=%s max_tokens=%s temperature=%s user_message=%s",
+                self.model,
+                self.max_tokens,
+                self.temperature,
+                user_message,
+            )
+            logger.debug("OpenAI ChatCompletion payload: %s", messages)
+            
             # Make API call
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -86,7 +101,17 @@ class OpenAIService:
                 temperature=self.temperature
             )
             
-            return response.choices[0].message.content.strip()
+            reply = response.choices[0].message.content.strip()
+            logger.info("OpenAI ChatCompletion response: %s", reply)
+            if hasattr(response, "usage") and response.usage is not None:
+                usage = response.usage
+                logger.info(
+                    "OpenAI usage - prompt_tokens=%s completion_tokens=%s total_tokens=%s",
+                    getattr(usage, "prompt_tokens", None),
+                    getattr(usage, "completion_tokens", None),
+                    getattr(usage, "total_tokens", None),
+                )
+            return reply
             
         except Exception as e:
             logger.error(f"Error calling OpenAI API: {e}")

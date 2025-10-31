@@ -11,6 +11,7 @@ import yaml
 from datetime import datetime
 import html
 import re
+import logging
 
 # Import our utility modules
 from utils.kb_loader import KnowledgeBaseLoader
@@ -19,6 +20,15 @@ from utils.filters import ResponseFilter
 from utils.i18n import I18nManager
 from utils.openai_service import OpenAIService
 from utils.rag_service import RAGService
+
+# Configure logging once for the app
+if not logging.getLogger().hasHandlers():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s - %(message)s"
+    )
+
+logger = logging.getLogger("hellofriends.chat")
 
 # Configure Streamlit page
 st.set_page_config(
@@ -323,9 +333,13 @@ def main():
 def generate_response(query: str, knowledge_base: Dict, prompt_manager: PromptManager, response_filter: ResponseFilter, openai_service: OpenAIService, kb_loader: KnowledgeBaseLoader, rag_service: RAGService) -> str:
     """Generate a response based on the query using RAG and knowledge base"""
     
+    logger.info("Chat assistant received query: %s", query)
+    
     # Check if this is an emergency query
     if prompt_manager.is_emergency_query(query):
-        return prompt_manager.format_emergency_response()
+        emergency_response = prompt_manager.format_emergency_response()
+        logger.info("Emergency response returned for query: %s", query)
+        return emergency_response
     
     # Try RAG first if available
     try:
@@ -347,12 +361,16 @@ def generate_response(query: str, knowledge_base: Dict, prompt_manager: PromptMa
                         source_name = source.get("source", "Document")
                         response += f"{i}. 📄 {source_name}\n"
             
+            logger.info("Responding with RAG (%s) for query '%s'", method, query)
             return response
     except Exception as e:
+        logger.exception("RAG query failed for query '%s'", query)
         st.error(f"RAG query failed: {e}")
     
     # Fallback to original method
-    return _generate_fallback_response(query, knowledge_base, prompt_manager, response_filter, kb_loader)
+    fallback_response = _generate_fallback_response(query, knowledge_base, prompt_manager, response_filter, kb_loader)
+    logger.info("Responding with fallback response for query '%s'", query)
+    return fallback_response
 
 def _get_relevant_rights(query: str, knowledge_base: Dict, prompt_manager: PromptManager, kb_loader: KnowledgeBaseLoader) -> List[Dict]:
     """Get relevant rights for the query"""
