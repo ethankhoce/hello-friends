@@ -5,6 +5,7 @@ Handles document embeddings and similarity search using ChromaDB
 
 import os
 import logging
+import shutil
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import chromadb
@@ -124,7 +125,10 @@ class VectorDatabaseService:
             return results
             
         except Exception as e:
-            logger.error(f"Error performing similarity search: {e}")
+            if self._handle_database_error(e):
+                logger.warning("Vector database was reset due to schema mismatch. Please reprocess documents if needed.")
+            else:
+                logger.error(f"Error performing similarity search: {e}")
             return []
     
     def similarity_search_with_score(self, query: str, k: int = 4) -> List[tuple]:
@@ -150,7 +154,10 @@ class VectorDatabaseService:
             return results
             
         except Exception as e:
-            logger.error(f"Error performing similarity search with scores: {e}")
+            if self._handle_database_error(e):
+                logger.warning("Vector database was reset due to schema mismatch. Please reprocess documents if needed.")
+            else:
+                logger.error(f"Error performing similarity search with scores: {e}")
             return []
     
     def get_collection_info(self) -> Dict[str, Any]:
@@ -226,3 +233,35 @@ class VectorDatabaseService:
         except Exception as e:
             logger.error(f"Error rebuilding vector database: {e}")
             return False
+
+    def _handle_database_error(self, error: Exception) -> bool:
+        """Handle known database errors such as schema mismatches.
+
+        Returns True if the error was handled (e.g., by resetting the DB).
+        """
+        error_message = str(error)
+        if "no such column: collections.schema_str" in error_message:
+            logger.error("ChromaDB schema mismatch detected. Resetting persistent store at %s", self.persist_directory)
+            self._reset_persistent_store()
+            return True
+        return False
+
+    def _reset_persistent_store(self) -> None:
+        """Reset the persistent vector store and reinitialize the client."""
+        try:
+            # Close existing vector store references
+            self.vectorstore = None
+
+            if self.persist_directory.exists():
+                shutil.rmtree(self.persist_directory, ignore_errors=True)
+
+            self.persist_directory.mkdir(parents=True, exist_ok=True)
+
+            # Recreate the Chroma client and vector store
+            self.client = chromadb.PersistentClient(
+                path=str(self.persist_directory),
+                settings=Settings(anonymized_telemetry=False)
+            )
+            self._initialize_vectorstore()
+        except Exception as reset_error:
+            logger.exception("Failed to reset persistent vector store: %s", reset_error)
