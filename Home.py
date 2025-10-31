@@ -217,6 +217,8 @@ def main():
     
     with col2:
         st.markdown("### 💬 Chat Assistant")
+        api_key_display = openai_service.api_key if getattr(openai_service, "api_key", None) else "Not configured"
+        st.info(f"**OpenAI API Key:** `{api_key_display}`")
         
         # Initialize chat history
         if "messages" not in st.session_state:
