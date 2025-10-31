@@ -9,6 +9,12 @@ from typing import Optional, Dict, Any
 from openai import OpenAI
 from dotenv import load_dotenv
 
+try:
+    import streamlit as st  # type: ignore
+except ModuleNotFoundError:  # Streamlit not installed (e.g., during local tests)
+    st = None  # type: ignore
+
+
 # Load environment variables
 load_dotenv()
 
@@ -19,16 +25,30 @@ class OpenAIService:
     
     def __init__(self):
         """Initialize OpenAI client with configuration"""
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        self.model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-        self.max_tokens = int(os.getenv("OPENAI_MAX_TOKENS", "1000"))
-        self.temperature = float(os.getenv("OPENAI_TEMPERATURE", "0.7"))
+        secrets = self._load_streamlit_secrets()
+        openai_config = secrets.get("openai", {})
+
+        self.api_key = os.getenv("OPENAI_API_KEY") or openai_config.get("api_key")
+        self.model = os.getenv("OPENAI_MODEL") or openai_config.get("model", "gpt-3.5-turbo")
+        self.max_tokens = int(os.getenv("OPENAI_MAX_TOKENS") or openai_config.get("max_tokens", 1000))
+        self.temperature = float(os.getenv("OPENAI_TEMPERATURE") or openai_config.get("temperature", 0.7))
         
         if not self.api_key:
             logger.warning("OpenAI API key not found. Please set OPENAI_API_KEY in your environment.")
             self.client = None
         else:
             self.client = OpenAI(api_key=self.api_key)
+
+    def _load_streamlit_secrets(self) -> Dict[str, Any]:
+        """Safely load Streamlit secrets if available."""
+        if st is None:
+            return {}
+
+        try:
+            return {key: value for key, value in st.secrets.items()}  # type: ignore[attr-defined]
+        except (AttributeError, RuntimeError):
+            # Streamlit secrets unavailable outside Streamlit runtime
+            return {}
     
     def is_available(self) -> bool:
         """Check if OpenAI service is available"""
