@@ -8,6 +8,7 @@ python-dotenv>=1.0.0
 # Data Processing
 PyYAML>=6.0
 pandas>=2.0.0
+markdown>=3.4.0
 
 # File Handling
 pathlib2>=2.3.7

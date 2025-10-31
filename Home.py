@@ -12,6 +12,7 @@ from datetime import datetime
 import html
 import re
 import logging
+import markdown
 
 # Import our utility modules
 from utils.kb_loader import KnowledgeBaseLoader
@@ -84,7 +85,7 @@ def load_managers():
     response_filter = ResponseFilter()
     i18n_manager = I18nManager()
     openai_service = OpenAIService()
-    rag_service = RAGService()
+    rag_service = RAGService(openai_service=openai_service)
     return kb_loader, prompt_manager, response_filter, i18n_manager, openai_service, rag_service
 
 def main():
@@ -219,6 +220,12 @@ def main():
         st.markdown("### 💬 Chat Assistant")
         api_key_display = openai_service.api_key if getattr(openai_service, "api_key", None) else "Not configured"
         st.info(f"**OpenAI API Key:** `{api_key_display}`")
+
+        openai_status = openai_service.get_status()
+        status_text = "✅ OpenAI client ready" if openai_service.is_available() and not openai_status.get("last_error") else "⚠️ OpenAI client fallback"
+        st.caption(f"{status_text} · model: {openai_status.get('model', 'unknown')}")
+        if openai_status.get("last_error"):
+            st.warning(f"Last OpenAI error: {openai_status['last_error']}")
         
         # Initialize chat history
         if "messages" not in st.session_state:
@@ -286,16 +293,19 @@ def main():
                         </div>
                         """, unsafe_allow_html=True)
                     else:
-                        # Clean the content to remove any stray HTML tags
+                        # Clean the content to remove any stray HTML tags and render markdown
                         clean_content = re.sub(r'</?div[^>]*>', '', message["content"]).strip()
-                        clean_content = html.escape(clean_content)
-                        st.markdown(f"""
-                        <div style="margin-bottom: 1rem; text-align: left;">
-                            <div style="display: inline-block; background-color: #f1f3f4; color: #333; padding: 0.5rem 1rem; border-radius: 18px; max-width: 70%; word-wrap: break-word;">
-                                {clean_content}
+                        rendered_markdown = markdown.markdown(clean_content)
+                        st.markdown(
+                            f"""
+                            <div style="margin-bottom: 1rem; text-align: left;">
+                                <div style="display: inline-block; background-color: #f1f3f4; color: #333; padding: 0.5rem 1rem; border-radius: 18px; max-width: 70%; word-wrap: break-word;">
+                                    {rendered_markdown}
+                                </div>
                             </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                            """,
+                            unsafe_allow_html=True,
+                        )
                 
                 st.markdown("", unsafe_allow_html=True)
             else:

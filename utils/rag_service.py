@@ -16,7 +16,12 @@ logger = logging.getLogger(__name__)
 class RAGService:
     """Retrieval-Augmented Generation service for migrant worker rights"""
     
-    def __init__(self, upload_dir: str = "rag/uploads", vector_db_dir: str = "rag/vector_db"):
+    def __init__(
+        self,
+        upload_dir: str = "rag/uploads",
+        vector_db_dir: str = "rag/vector_db",
+        openai_service: Optional[OpenAIService] = None,
+    ):
         """
         Initialize RAG service
         
@@ -27,7 +32,7 @@ class RAGService:
         self.upload_dir = upload_dir
         self.pdf_processor = PDFProcessor()
         self.vector_db = VectorDatabaseService(persist_directory=vector_db_dir)
-        self.openai_service = OpenAIService()
+        self.openai_service = openai_service or OpenAIService()
     
     def process_uploaded_documents(self) -> Dict[str, Any]:
         """

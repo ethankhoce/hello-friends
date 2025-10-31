@@ -33,16 +33,36 @@ class OpenAIService:
         secrets = self._load_streamlit_secrets()
         openai_config = secrets.get("openai", {})
 
-        self.api_key = os.getenv("OPENAI_API_KEY") or openai_config.get("api_key")
-        self.model = os.getenv("OPENAI_MODEL") or openai_config.get("model", "gpt-3.5-turbo")
-        self.max_tokens = int(os.getenv("OPENAI_MAX_TOKENS") or openai_config.get("max_tokens", 1000))
-        self.temperature = float(os.getenv("OPENAI_TEMPERATURE") or openai_config.get("temperature", 0.7))
+        # Support both nested secrets (openai.api_key) and flat secrets (OPENAI_API_KEY)
+        self.api_key = (
+            os.getenv("OPENAI_API_KEY")
+            or openai_config.get("api_key")
+            or secrets.get("OPENAI_API_KEY")
+        )
+        self.model = (
+            os.getenv("OPENAI_MODEL")
+            or openai_config.get("model")
+            or secrets.get("OPENAI_MODEL")
+            or "gpt-3.5-turbo"
+        )
+        self.max_tokens = int(
+            os.getenv("OPENAI_MAX_TOKENS")
+            or openai_config.get("max_tokens")
+            or secrets.get("OPENAI_MAX_TOKENS", 1000)
+        )
+        self.temperature = float(
+            os.getenv("OPENAI_TEMPERATURE")
+            or openai_config.get("temperature")
+            or secrets.get("OPENAI_TEMPERATURE", 0.7)
+        )
         
         if not self.api_key:
             logger.warning("OpenAI API key not found. Please set OPENAI_API_KEY in your environment.")
             self.client = None
         else:
             self.client = OpenAI(api_key=self.api_key)
+
+        self.last_error: Optional[str] = None
 
     def _load_streamlit_secrets(self) -> Dict[str, Any]:
         """Safely load Streamlit secrets if available."""
@@ -58,6 +78,15 @@ class OpenAIService:
     def is_available(self) -> bool:
         """Check if OpenAI service is available"""
         return self.client is not None and self.api_key is not None
+
+    def get_status(self) -> Dict[str, Any]:
+        """Return diagnostic information about the OpenAI client."""
+        return {
+            "api_key_present": bool(self.api_key),
+            "client_initialized": self.client is not None,
+            "model": self.model,
+            "last_error": self.last_error,
+        }
     
     def generate_response(self, user_message: str, context: Optional[Dict[str, Any]] = None) -> str:
         """
@@ -72,6 +101,7 @@ class OpenAIService:
         """
         if not self.is_available():
             logger.info("OpenAI service unavailable, using fallback for message: %s", user_message)
+            self.last_error = "OpenAI client unavailable"
             return self._get_fallback_response(user_message)
         
         try:
@@ -111,10 +141,12 @@ class OpenAIService:
                     getattr(usage, "completion_tokens", None),
                     getattr(usage, "total_tokens", None),
                 )
+            self.last_error = None
             return reply
             
         except Exception as e:
-            logger.error(f"Error calling OpenAI API: {e}")
+            logger.exception("Error calling OpenAI API")
+            self.last_error = str(e)
             return self._get_fallback_response(user_message)
     
     def _get_system_prompt(self, context: Optional[Dict[str, Any]] = None) -> str:
