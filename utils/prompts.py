@@ -80,6 +80,12 @@ class PromptManager:
         
         query_lower = query.lower()
         return any(keyword in query_lower for keyword in emergency_keywords)
+
+    def is_greeting_query(self, query: str) -> bool:
+        """Check if the query is a simple greeting"""
+        greeting_keywords = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening']
+        normalized = query.lower().strip()
+        return any(normalized == keyword or normalized.startswith(f"{keyword} ") for keyword in greeting_keywords)
     
     def get_response_template(self, query_type: str) -> str:
         """Get a response template based on query type"""

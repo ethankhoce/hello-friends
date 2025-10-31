@@ -352,6 +352,11 @@ def generate_response(query: str, knowledge_base: Dict, prompt_manager: PromptMa
         emergency_response = prompt_manager.format_emergency_response()
         logger.info("Emergency response returned for query: %s", query)
         return emergency_response
+
+    # Handle simple greetings directly without invoking RAG
+    if prompt_manager.is_greeting_query(query):
+        logger.info("Greeting detected, responding directly without RAG")
+        return openai_service.generate_response(query)
     
     # Try RAG first if available
     try:
