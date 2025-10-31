@@ -78,7 +78,7 @@ def show_login_page():
 
 # Initialize managers
 @st.cache_resource
-def load_managers():
+def load_managers(cache_version: str = "v2"):
     """Load and cache utility managers"""
     kb_loader = KnowledgeBaseLoader()
     prompt_manager = PromptManager()
@@ -354,7 +354,7 @@ def generate_response(query: str, knowledge_base: Dict, prompt_manager: PromptMa
         return emergency_response
 
     # Handle simple greetings directly without invoking RAG
-    if prompt_manager.is_greeting_query(query):
+    if hasattr(prompt_manager, "is_greeting_query") and prompt_manager.is_greeting_query(query):
         logger.info("Greeting detected, responding directly without RAG")
         return openai_service.generate_response(query)
     
