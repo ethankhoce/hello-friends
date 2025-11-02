@@ -63,7 +63,3 @@ logs/
 # Temporary files
 *.tmp
 *.temp
-
-# Uploaded files (keep directory structure but ignore contents)
-rag/uploads/*
-!rag/uploads/.gitkeep
