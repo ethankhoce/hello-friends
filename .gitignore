@@ -63,3 +63,10 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# Vector Database (should not be committed - regenerated per environment)
+rag/vector_db/
+
+# Uploaded documents (keep directory structure but not files)
+rag/uploads/*
+!rag/uploads/.gitkeep
