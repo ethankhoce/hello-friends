@@ -12,8 +12,8 @@ import chromadb
 from chromadb.config import Settings
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.documents import Document
-from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +56,9 @@ class VectorDatabaseService:
             except Exception as e:
                 logger.warning(f"Failed to initialize OpenAI embeddings: {e}")
         
-        # Fallback to local embeddings
-        logger.info("Using local sentence-transformers embeddings")
-        return SentenceTransformer('all-MiniLM-L6-v2')
+        # Fallback to local embeddings using HuggingFace
+        logger.info("Using local HuggingFace embeddings")
+        return HuggingFaceEmbeddings(model_name='all-MiniLM-L6-v2')
     
     def _initialize_vectorstore(self):
         """Initialize the vector store"""
@@ -175,7 +175,7 @@ class VectorDatabaseService:
                 "collection_name": self.collection_name,
                 "document_count": count,
                 "persist_directory": str(self.persist_directory),
-                "embedding_model": "OpenAI" if hasattr(self.embeddings, 'openai_api_key') else "SentenceTransformer"
+                "embedding_model": "OpenAI" if hasattr(self.embeddings, 'openai_api_key') else "HuggingFace"
             }
             
         except Exception as e:

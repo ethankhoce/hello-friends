@@ -85,7 +85,7 @@ def _chat_flow() -> None:
         """
         **Key implementation points**
         - `utils.rag_service.RAGService.query_with_rag()`: performs vector similarity search (k=3), combines context, and calls OpenAI or fallback.
-        - `utils.vector_db.VectorDatabaseService`: manages Chroma persistence and embeddings (OpenAI if key is set, else SentenceTransformer `all-MiniLM-L6-v2`).
+        - `utils.vector_db.VectorDatabaseService`: manages Chroma persistence and embeddings (OpenAI if key is set, else HuggingFace `all-MiniLM-L6-v2`).
         - `utils.openai_service.OpenAIService`: wraps Chat Completions; builds system prompt with retrieved context and rights excerpts.
         - `Home.generate_response()`: emergency check → RAG query → knowledge base fallback; tags responses and surfaces sources.
         """
