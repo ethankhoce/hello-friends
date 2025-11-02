@@ -43,6 +43,7 @@ class VectorDatabaseService:
         
         # Initialize vector store
         self.vectorstore = None
+        self.was_reset = False  # Flag to track if DB was reset
         self._initialize_vectorstore()
     
     def _get_embeddings(self):
@@ -245,12 +246,14 @@ class VectorDatabaseService:
         if "no such column: collections.schema_str" in error_message:
             logger.error("ChromaDB schema mismatch detected. Resetting persistent store at %s", self.persist_directory)
             self._reset_persistent_store()
+            self.was_reset = True
             return True
         
         # Handle embedding dimension mismatch
         if "Collection expecting embedding with dimension" in error_message:
             logger.error("Embedding dimension mismatch detected. The database was created with a different embedding model. Resetting persistent store at %s", self.persist_directory)
             self._reset_persistent_store()
+            self.was_reset = True
             return True
         
         return False

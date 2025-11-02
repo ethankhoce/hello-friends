@@ -87,6 +87,17 @@ class RAGService:
             Dictionary with answer and metadata
         """
         try:
+            # Check if the database was reset and needs to be rebuilt
+            if self.vector_db.was_reset:
+                logger.info("Database was reset, attempting to rebuild from uploaded documents")
+                rebuild_result = self.rebuild_database()
+                if rebuild_result["success"]:
+                    logger.info("Successfully rebuilt database after reset")
+                else:
+                    logger.warning("Failed to rebuild database after reset")
+                # Clear the flag to avoid repeated rebuilds
+                self.vector_db.was_reset = False
+            
             # Perform similarity search
             similar_docs = self.vector_db.similarity_search(question, k=3)
             
