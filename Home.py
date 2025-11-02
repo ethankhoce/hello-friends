@@ -218,8 +218,6 @@ def main():
     
     with col2:
         st.markdown("### 💬 Chat Assistant")
-        api_key_display = openai_service.api_key if getattr(openai_service, "api_key", None) else "Not configured"
-        st.info(f"**OpenAI API Key:** `{api_key_display}`")
 
         openai_status = openai_service.get_status()
         status_text = "✅ OpenAI client ready" if openai_service.is_available() and not openai_status.get("last_error") else "⚠️ OpenAI client fallback"
