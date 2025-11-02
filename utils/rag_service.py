@@ -33,6 +33,30 @@ class RAGService:
         self.pdf_processor = PDFProcessor()
         self.vector_db = VectorDatabaseService(persist_directory=vector_db_dir)
         self.openai_service = openai_service or OpenAIService()
+        
+        # Auto-initialize if database is empty but documents exist
+        self._auto_initialize_if_needed()
+    
+    def _auto_initialize_if_needed(self):
+        """Auto-initialize the database if it's empty but documents exist"""
+        try:
+            # Check if database is empty
+            db_info = self.vector_db.get_collection_info()
+            doc_count = db_info.get("document_count", 0)
+            
+            # If database is empty, check if we have documents to process
+            if doc_count == 0:
+                logger.info("Vector database is empty, checking for documents to auto-initialize")
+                
+                # Try to process documents
+                result = self.process_uploaded_documents()
+                if result["success"]:
+                    logger.info(f"Auto-initialized database with {result['documents_processed']} document chunks")
+                else:
+                    logger.info("No documents found for auto-initialization")
+        except Exception as e:
+            # Don't fail initialization if auto-init fails
+            logger.warning(f"Auto-initialization check failed: {e}")
     
     def process_uploaded_documents(self) -> Dict[str, Any]:
         """
