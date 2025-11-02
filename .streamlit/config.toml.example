@@ -1,0 +1,2 @@
+[server]
+folderWatchBlacklist = ["venv", ".venv", "__pycache__", "node_modules", ".git", "rag/vector_db"]

@@ -126,7 +126,7 @@ class VectorDatabaseService:
             
         except Exception as e:
             if self._handle_database_error(e):
-                logger.warning("Vector database was reset due to schema mismatch. Please reprocess documents if needed.")
+                logger.warning("Vector database was reset due to schema or embedding mismatch. Please reprocess documents if needed.")
             else:
                 logger.error(f"Error performing similarity search: {e}")
             return []
@@ -155,7 +155,7 @@ class VectorDatabaseService:
             
         except Exception as e:
             if self._handle_database_error(e):
-                logger.warning("Vector database was reset due to schema mismatch. Please reprocess documents if needed.")
+                logger.warning("Vector database was reset due to schema or embedding mismatch. Please reprocess documents if needed.")
             else:
                 logger.error(f"Error performing similarity search with scores: {e}")
             return []
@@ -235,15 +235,24 @@ class VectorDatabaseService:
             return False
 
     def _handle_database_error(self, error: Exception) -> bool:
-        """Handle known database errors such as schema mismatches.
+        """Handle known database errors such as schema mismatches and embedding dimension mismatches.
 
         Returns True if the error was handled (e.g., by resetting the DB).
         """
         error_message = str(error)
+        
+        # Handle schema mismatch errors
         if "no such column: collections.schema_str" in error_message:
             logger.error("ChromaDB schema mismatch detected. Resetting persistent store at %s", self.persist_directory)
             self._reset_persistent_store()
             return True
+        
+        # Handle embedding dimension mismatch
+        if "Collection expecting embedding with dimension" in error_message:
+            logger.error("Embedding dimension mismatch detected. The database was created with a different embedding model. Resetting persistent store at %s", self.persist_directory)
+            self._reset_persistent_store()
+            return True
+        
         return False
 
     def _reset_persistent_store(self) -> None:

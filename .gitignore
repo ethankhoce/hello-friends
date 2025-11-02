@@ -56,7 +56,9 @@ Thumbs.db
 logs/
 
 # Streamlit
-.streamlit/
+.streamlit/*
+!.streamlit/config.toml
+!.streamlit/config.toml.example
 
 # Temporary files
 *.tmp
